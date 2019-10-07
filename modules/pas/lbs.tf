@@ -3,7 +3,7 @@
 resource "aws_security_group" "web_lb" {
   name        = "web_lb_security_group"
   description = "Load Balancer Security Group"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -26,36 +26,41 @@ resource "aws_security_group" "web_lb" {
     to_port     = 0
   }
 
-  tags = "${merge(var.tags, map("Name", "${var.env_name}-lb-security-group"))}"
+  tags = merge(
+    var.tags,
+    {
+      "Name" = "${var.env_name}-lb-security-group"
+    },
+  )
 }
 
 resource "aws_lb" "web" {
   name                             = "${var.env_name}-web-lb"
   load_balancer_type               = "network"
   enable_cross_zone_load_balancing = true
-  internal                         = "${var.internetless}"
-  subnets                          = ["${var.public_subnet_ids}"]
+  internal                         = var.internetless
+  subnets                          = var.public_subnet_ids
 }
 
 resource "aws_lb_listener" "web_80" {
-  load_balancer_arn = "${aws_lb.web.arn}"
+  load_balancer_arn = aws_lb.web.arn
   port              = 80
   protocol          = "TCP"
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.web_80.arn}"
+    target_group_arn = aws_lb_target_group.web_80.arn
   }
 }
 
 resource "aws_lb_listener" "web_443" {
-  load_balancer_arn = "${aws_lb.web.arn}"
+  load_balancer_arn = aws_lb.web.arn
   port              = 443
   protocol          = "TCP"
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.web_443.arn}"
+    target_group_arn = aws_lb_target_group.web_443.arn
   }
 }
 
@@ -63,7 +68,7 @@ resource "aws_lb_target_group" "web_80" {
   name     = "${var.env_name}-web-tg-80"
   port     = 80
   protocol = "TCP"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
   health_check {
     protocol = "TCP"
@@ -74,7 +79,7 @@ resource "aws_lb_target_group" "web_443" {
   name     = "${var.env_name}-web-tg-443"
   port     = 443
   protocol = "TCP"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
   health_check {
     protocol = "TCP"
@@ -84,10 +89,10 @@ resource "aws_lb_target_group" "web_443" {
 # SSH Load Balancer
 
 resource "aws_security_group" "ssh_lb" {
-  count       = "${var.use_ssh_routes ? 1 : 0}"
+  count       = var.use_ssh_routes ? 1 : 0
   name        = "ssh_lb_security_group"
   description = "Load Balancer SSH Security Group"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -103,36 +108,41 @@ resource "aws_security_group" "ssh_lb" {
     to_port     = 0
   }
 
-  tags = "${merge(var.tags, map("Name", "${var.env_name}-ssh-lb-security-group"))}"
+  tags = merge(
+    var.tags,
+    {
+      "Name" = "${var.env_name}-ssh-lb-security-group"
+    },
+  )
 }
 
 resource "aws_lb" "ssh" {
-  count                            = "${var.use_ssh_routes ? 1 : 0}"
+  count                            = var.use_ssh_routes ? 1 : 0
   name                             = "${var.env_name}-ssh-lb"
   load_balancer_type               = "network"
   enable_cross_zone_load_balancing = true
-  internal                         = "${var.internetless}"
-  subnets                          = ["${var.public_subnet_ids}"]
+  internal                         = var.internetless
+  subnets                          = var.public_subnet_ids
 }
 
 resource "aws_lb_listener" "ssh" {
-  count             = "${var.use_ssh_routes ? 1 : 0}"
-  load_balancer_arn = "${aws_lb.ssh.arn}"
+  count             = var.use_ssh_routes ? 1 : 0
+  load_balancer_arn = aws_lb.ssh[0].arn
   port              = 2222
   protocol          = "TCP"
 
   default_action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.ssh.arn}"
+    target_group_arn = aws_lb_target_group.ssh[0].arn
   }
 }
 
 resource "aws_lb_target_group" "ssh" {
-  count    = "${var.use_ssh_routes ? 1 :0}"
+  count    = var.use_ssh_routes ? 1 : 0
   name     = "${var.env_name}-ssh-tg"
   port     = 2222
   protocol = "TCP"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
   health_check {
     protocol = "TCP"
@@ -142,20 +152,20 @@ resource "aws_lb_target_group" "ssh" {
 # TCP Load Balancer
 
 locals {
-  tcp_port_count = "${var.use_tcp_routes ? 10 : 0}"
+  tcp_port_count = var.use_tcp_routes ? 10 : 0
 }
 
 resource "aws_security_group" "tcp_lb" {
-  count       = "${var.use_tcp_routes ? 1 : 0}"
+  count       = var.use_tcp_routes ? 1 : 0
   name        = "tcp_lb_security_group"
   description = "Load Balancer TCP Security Group"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
     protocol    = "tcp"
     from_port   = 1024
-    to_port     = "${1024 + local.tcp_port_count}"
+    to_port     = 1024 + local.tcp_port_count
   }
 
   egress {
@@ -165,40 +175,46 @@ resource "aws_security_group" "tcp_lb" {
     to_port     = 0
   }
 
-  tags = "${merge(var.tags, map("Name", "${var.env_name}-tcp-lb-security-group"))}"
+  tags = merge(
+    var.tags,
+    {
+      "Name" = "${var.env_name}-tcp-lb-security-group"
+    },
+  )
 }
 
 resource "aws_lb" "tcp" {
-  count                            = "${var.use_tcp_routes ? 1 : 0}"
+  count                            = var.use_tcp_routes ? 1 : 0
   name                             = "${var.env_name}-tcp-lb"
   load_balancer_type               = "network"
   enable_cross_zone_load_balancing = true
-  internal                         = "${var.internetless}"
-  subnets                          = ["${var.public_subnet_ids}"]
+  internal                         = var.internetless
+  subnets                          = var.public_subnet_ids
 }
 
 resource "aws_lb_listener" "tcp" {
-  load_balancer_arn = "${aws_lb.tcp.arn}"
-  port              = "${1024 + count.index}"
+  load_balancer_arn = aws_lb.tcp[0].arn
+  port              = 1024 + count.index
   protocol          = "TCP"
 
-  count = "${local.tcp_port_count}"
+  count = local.tcp_port_count
 
   default_action {
     type             = "forward"
-    target_group_arn = "${element(aws_lb_target_group.tcp.*.arn, count.index)}"
+    target_group_arn = aws_lb_target_group.tcp.0.arn
   }
 }
 
 resource "aws_lb_target_group" "tcp" {
   name     = "${var.env_name}-tcp-tg-${1024 + count.index}"
-  port     = "${1024 + count.index}"
+  port     = 1024 + count.index
   protocol = "TCP"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
-  count = "${local.tcp_port_count}"
+  count = local.tcp_port_count
 
   health_check {
     protocol = "TCP"
   }
 }
+

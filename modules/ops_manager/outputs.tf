@@ -1,60 +1,61 @@
 output "bucket" {
-  value = "${element(concat(aws_s3_bucket.ops_manager_bucket.*.bucket, list("")), 0)}"
+  value = length(aws_s3_bucket.ops_manager_bucket) > 0? aws_s3_bucket.ops_manager_bucket.0.bucket : ""
 }
 
 output "public_ip" {
-  value = "${local.ops_man_vm ? element(concat(aws_eip.ops_manager_attached.*.public_ip, list("")), 0) : element(concat(aws_eip.ops_manager_unattached.*.public_ip, list("")), 0)}"
+  value = local.ops_man_vm && length(aws_eip.ops_manager_attached) > 0 ? aws_eip.ops_manager_attached.0.public_ip : length(aws_eip.ops_manager_attached) > 0 ? aws_eip.ops_manager_unattached.0.public_ip : ""
 }
 
 output "dns" {
-  value = "${local.ops_man_vm ? element(concat(aws_route53_record.ops_manager_attached_eip.*.name, list("")), 0) : element(concat(aws_route53_record.ops_manager_unattached_eip.*.name, list("")), 0)}"
+  value = local.ops_man_vm && length(aws_route53_record.ops_manager_attached_eip) > 0 ? aws_route53_record.ops_manager_attached_eip.0.name : length(aws_route53_record.ops_manager_unattached_eip) > 0 ? aws_route53_record.ops_manager_unattached_eip.0.name : ""
 }
 
 output "optional_dns" {
-  value = "${element(concat(aws_route53_record.optional_ops_manager.*.name, list("")), 0)}"
+  value = length(aws_route53_record.optional_ops_manager) > 0 ? aws_route53_record.optional_ops_manager.0.name : ""
 }
 
 output "optional_public_ip" {
-  value = "${element(concat(aws_eip.optional_ops_manager.*.public_ip, list("")), 0)}"
+  value = length(aws_eip.optional_ops_manager) > 0 ? aws_eip.optional_ops_manager.0.public_ip : ""
 }
 
 output "security_group_id" {
-  value = "${element(concat(aws_security_group.ops_manager_security_group.*.id, list("")), 0)}"
+  value = length(aws_security_group.ops_manager_security_group) > 0 ? aws_security_group.ops_manager_security_group.0.id : ""
 }
 
 output "ssh_private_key" {
-  value = "${element(concat(tls_private_key.ops_manager.*.private_key_pem, list("")), 0)}"
+  value = length(tls_private_key.ops_manager) > 0 ? tls_private_key.ops_manager.0.private_key_pem : ""
+  sensitive = true
 }
 
 output "ssh_public_key_name" {
-  value = "${element(concat(aws_key_pair.ops_manager.*.key_name, list("")), 0)}"
+  value = length(aws_key_pair.ops_manager) > 0 ? aws_key_pair.ops_manager.0.key_name : ""
 }
 
 output "ssh_public_key" {
-  value = "${element(concat(aws_key_pair.ops_manager.*.public_key, list("")), 0)}"
+  value = length(aws_key_pair.ops_manager) > 0 ? aws_key_pair.ops_manager.0.public_key : ""
 }
 
 output "ops_manager_private_ip" {
-  value = "${element(concat(aws_instance.ops_manager.*.private_ip, list("")), 0)}"
+  value = length(aws_instance.ops_manager) > 0 ? aws_instance.ops_manager.0.private_ip : ""
 }
 
 output "ops_manager_iam_instance_profile_name" {
-  value = "${element(concat(aws_iam_instance_profile.ops_manager.*.name, list("")), 0)}"
+  value = length(aws_iam_instance_profile.ops_manager) > 0 ? aws_iam_instance_profile.ops_manager.0.name : ""
 }
 
 output "ops_manager_iam_user_name" {
-  value = "${element(concat(aws_iam_user.ops_manager.*.name, list("")), 0)}"
+  value = length(aws_iam_user.ops_manager) > 0 ? aws_iam_user.ops_manager.0.name : ""
 }
 
 output "ops_manager_iam_user_access_key" {
-  value = "${element(concat(aws_iam_access_key.ops_manager.*.id, list("")), 0)}"
+  value = length(aws_iam_access_key.ops_manager) > 0 ? aws_iam_access_key.ops_manager.0.id : ""
 }
 
 output "ops_manager_iam_user_secret_key" {
-  value     = "${element(concat(aws_iam_access_key.ops_manager.*.secret, list("")), 0)}"
+  value     = length(aws_iam_access_key.ops_manager) > 0 ? aws_iam_access_key.ops_manager.0.secret : ""
   sensitive = true
 }
 
 output "ops_manager_iam_role_name" {
-  value = "${aws_iam_role.ops_manager.name}"
+  value = aws_iam_role.ops_manager.name
 }

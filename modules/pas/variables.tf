@@ -1,43 +1,44 @@
 variable "env_name" {
-  type = "string"
+  type = string
 }
 
 variable "region" {
-  type = "string"
+  type = string
 }
 
 variable "availability_zones" {
-  type = "list"
+  type = list(string)
 }
 
 variable "vpc_cidr" {
-  type = "string"
+  type = string
 }
 
 variable "vpc_id" {
-  type = "string"
+  type = string
 }
 
 variable "route_table_ids" {
-  type = "list"
+  type = list(string)
 }
 
-variable "internetless" {}
+variable "internetless" {
+}
 
 variable "public_subnet_ids" {
-  type = "list"
+  type = list(string)
 }
 
 variable "bucket_suffix" {
-  type = "string"
+  type = string
 }
 
 variable "zone_id" {
-  type = "string"
+  type = string
 }
 
 variable "dns_suffix" {
-  type = "string"
+  type = string
 }
 
 variable "use_route53" {
@@ -58,11 +59,11 @@ variable "create_versioned_pas_buckets" {
 }
 
 variable "ops_manager_iam_user_name" {
-  type = "string"
+  type = string
 }
 
 variable "iam_ops_manager_role_name" {
-  type = "string"
+  type = string
 }
 
 variable "create_isoseg_resources" {
@@ -70,15 +71,16 @@ variable "create_isoseg_resources" {
 }
 
 variable "tags" {
-  type = "map"
+  type = map(string)
 }
 
 module "cidr_lookup" {
-  source = "../calculate_subnets"
-  vpc_cidr = "${var.vpc_cidr}"
+  source   = "../calculate_subnets"
+  vpc_cidr = var.vpc_cidr
 }
 
 locals {
-  pas_cidr      =  "${module.cidr_lookup.pas_cidr}"
-  services_cidr =  "${module.cidr_lookup.services_cidr}"
+  pas_cidr      = module.cidr_lookup.pas_cidr
+  services_cidr = module.cidr_lookup.services_cidr
 }
+

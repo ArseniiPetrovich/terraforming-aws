@@ -1,14 +1,18 @@
-variable "env_name" {}
+variable "env_name" {
+}
 
-variable "dns_suffix" {}
-variable "region" {}
+variable "dns_suffix" {
+}
+
+variable "region" {
+}
 
 variable "availability_zones" {
-  type = "list"
+  type = list(string)
 }
 
 variable "vpc_cidr" {
-  type    = "string"
+  type    = string
   default = "10.0.0.0/16"
 }
 
@@ -70,7 +74,7 @@ variable "rds_instance_class" {
 }
 
 variable "rds_instance_count" {
-  type    = "string"
+  type    = string
   default = 1
 }
 
@@ -78,22 +82,22 @@ variable "rds_instance_count" {
 * Tags  *
 *********/
 variable "tags" {
-  type        = "map"
+  type        = map(string)
   default     = {}
   description = "Key/value tags to assign to all AWS resources"
 }
 
 locals {
-  ops_man_subnet_id = "${var.ops_manager_private ? element(module.infra.infrastructure_subnet_ids, 0) : element(module.infra.public_subnet_ids, 0)}"
+  ops_man_subnet_id = var.ops_manager_private ? element(module.infra.infrastructure_subnet_ids, 0) : element(module.infra.public_subnet_ids, 0)
 
-  bucket_suffix = "${random_integer.bucket.result}"
+  bucket_suffix = random_integer.bucket.result
 
   default_tags = {
-    Environment = "${var.env_name}"
+    Environment = var.env_name
     Application = "Control Plane"
   }
 
-  actual_tags = "${merge(var.tags, local.default_tags)}"
+  actual_tags = merge(var.tags, local.default_tags)
 }
 
 /*******************************
@@ -107,3 +111,4 @@ variable "access_key" {
 variable "secret_key" {
   default = ""
 }
+

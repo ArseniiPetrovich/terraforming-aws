@@ -1,45 +1,58 @@
 variable "region" {
-  type = "string"
+  type = string
 }
 
-variable "private" {}
+variable "private" {
+}
 
-variable "env_name" {}
+variable "env_name" {
+}
 
-variable "ami" {}
+variable "ami" {
+}
 
-variable "optional_ami" {}
+variable "optional_ami" {
+}
 
-variable "instance_type" {}
+variable "instance_type" {
+}
 
-variable "subnet_id" {}
+variable "subnet_id" {
+}
 
-variable "vpc_id" {}
+variable "vpc_id" {
+}
 
-variable "vpc_cidr" {}
+variable "vpc_cidr" {
+}
 
 variable "iam_users" {
   default = 1
 }
 
 variable "additional_iam_roles_arn" {
-  type    = "list"
+  type    = list(string)
   default = []
 }
 
-variable "dns_suffix" {}
+variable "dns_suffix" {
+}
 
-variable "use_route53" {}
+variable "use_route53" {
+}
 
-variable "zone_id" {}
+variable "zone_id" {
+}
 
-variable "bucket_suffix" {}
+variable "bucket_suffix" {
+}
 
 variable "tags" {
-  type = "map"
+  type = map(string)
 }
 
 locals {
-  ops_man_vm          = "${var.ami == "" ? 0 : 1}"
-  optional_ops_man_vm = "${var.optional_ami == "" ? 0 : 1}"
+  ops_man_vm          = var.ami == "" ? 0 : 1
+  optional_ops_man_vm = var.optional_ami == "" ? 0 : 1
 }
+

@@ -1,3 +1,9 @@
+variable "test" {
+  type = "list"
+  default = []
+}
+
+
 variable "rds_db_username" {
   default = "admin"
 }
@@ -7,45 +13,47 @@ variable "rds_instance_class" {
 }
 
 variable "engine" {
-  type = "string"
+  type = string
 }
 
 variable "engine_version" {
-  type = "string"
+  type = string
 }
 
-variable "db_port" {}
+variable "db_port" {
+}
 
 variable "rds_instance_count" {
-  type    = "string"
+  type    = string
   default = 0
 }
 
 variable "env_name" {
-  type = "string"
+  type = string
 }
 
 variable "availability_zones" {
-  type = "list"
+  type = list(string)
 }
 
 variable "vpc_cidr" {
-  type = "string"
+  type = string
 }
 
 variable "vpc_id" {
-  type = "string"
+  type = string
 }
 
 variable "tags" {
-  type = "map"
+  type = map(string)
 }
 
 module "cidr_lookup" {
-  source = "../calculate_subnets"
-  vpc_cidr = "${var.vpc_cidr}"
+  source   = "../calculate_subnets"
+  vpc_cidr = var.vpc_cidr
 }
 
 locals {
-  rds_cidr = "${module.cidr_lookup.rds_cidr}"
+  rds_cidr = module.cidr_lookup.rds_cidr
 }
+

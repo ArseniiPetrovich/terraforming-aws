@@ -1,7 +1,7 @@
 resource "aws_security_group" "credhub" {
   name        = "${var.env_name}-credhub-sg"
   description = "Allows users to access the credhub"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -18,14 +18,14 @@ resource "aws_security_group" "credhub" {
   }
 
   tags = {
-    Environment = "${var.env_name}"
+    Environment = var.env_name
   }
 }
 
 resource "aws_security_group" "uaa" {
   name        = "${var.env_name}-uaa-sg"
   description = "Allows users to access the uaa"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -42,14 +42,14 @@ resource "aws_security_group" "uaa" {
   }
 
   tags = {
-    Environment = "${var.env_name}"
+    Environment = var.env_name
   }
 }
 
 resource "aws_security_group" "lb" {
   name        = "${var.env_name}-alb-sg"
   description = "Allow access to VMs from LB"
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
 
   ingress {
     cidr_blocks = ["0.0.0.0/0"]
@@ -60,20 +60,20 @@ resource "aws_security_group" "lb" {
 
   egress {
     protocol        = "tcp"
-    security_groups = ["${aws_security_group.uaa.id}"]
+    security_groups = [aws_security_group.uaa.id]
     from_port       = 8443
     to_port         = 8443
   }
 
   egress {
     protocol        = "tcp"
-    security_groups = ["${aws_security_group.credhub.id}"]
+    security_groups = [aws_security_group.credhub.id]
     from_port       = 8844
     to_port         = 8844
   }
 
   tags = {
-    Environment = "${var.env_name}"
+    Environment = var.env_name
   }
 }
 
@@ -81,11 +81,11 @@ resource "aws_lb" "credhub_uaa" {
   name               = "${var.env_name}-shared-lb"
   internal           = false
   load_balancer_type = "application"
-  subnets            = ["${var.public_subnet_ids}"]
-  security_groups    = ["${aws_security_group.lb.id}"]
+  subnets            = var.public_subnet_ids
+  security_groups    = [aws_security_group.lb.id]
 
   tags = {
-    Environment = "${var.env_name}"
+    Environment = var.env_name
   }
 }
 
@@ -93,7 +93,7 @@ resource "aws_lb_target_group" "uaa" {
   name     = "${var.env_name}-uaa-tg"
   port     = 8443
   protocol = "HTTPS"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
   health_check {
     healthy_threshold   = 3
@@ -109,7 +109,7 @@ resource "aws_lb_target_group" "credhub" {
   name     = "${var.env_name}-credhub-tg"
   port     = 8844
   protocol = "HTTPS"
-  vpc_id   = "${var.vpc_id}"
+  vpc_id   = var.vpc_id
 
   health_check {
     healthy_threshold   = 3
@@ -122,11 +122,11 @@ resource "aws_lb_target_group" "credhub" {
 }
 
 resource "aws_lb_listener" "credhub_uaa" {
-  load_balancer_arn = "${aws_lb.credhub_uaa.arn}"
+  load_balancer_arn = aws_lb.credhub_uaa.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  certificate_arn   = "${aws_iam_server_certificate.lb_managed_cert.arn}"
+  certificate_arn   = aws_iam_server_certificate.lb_managed_cert.arn
 
   default_action {
     type = "fixed-response"
@@ -140,29 +140,30 @@ resource "aws_lb_listener" "credhub_uaa" {
 }
 
 resource "aws_lb_listener_rule" "redirect_to_uaa" {
-  listener_arn = "${aws_lb_listener.credhub_uaa.arn}"
+  listener_arn = aws_lb_listener.credhub_uaa.arn
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.uaa.arn}"
+    target_group_arn = aws_lb_target_group.uaa.arn
   }
 
   condition {
     field  = "host-header"
-    values = ["${aws_route53_record.uaa.name}"]
+    values = [aws_route53_record.uaa[0].name]
   }
 }
 
 resource "aws_lb_listener_rule" "redirect_to_credhub" {
-  listener_arn = "${aws_lb_listener.credhub_uaa.arn}"
+  listener_arn = aws_lb_listener.credhub_uaa.arn
 
   action {
     type             = "forward"
-    target_group_arn = "${aws_lb_target_group.credhub.arn}"
+    target_group_arn = aws_lb_target_group.credhub.arn
   }
 
   condition {
     field  = "host-header"
-    values = ["${aws_route53_record.credhub.name}"]
+    values = [aws_route53_record.credhub[0].name]
   }
 }
+

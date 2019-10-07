@@ -1,20 +1,21 @@
 output "rds_address" {
-  value = "${element(concat(aws_db_instance.rds.*.address, list("")), 0)}"
+  value = var.rds_instance_count > 0 ? aws_db_instance.rds.0.address : ""
 }
 
 output "rds_port" {
-  value = "${element(concat(aws_db_instance.rds.*.port, list("")), 0)}"
+  value = var.rds_instance_count > 0 ? aws_db_instance.rds.0.port : ""
 }
 
 output "rds_username" {
-  value = "${element(concat(aws_db_instance.rds.*.username, list("")), 0)}"
+  value = var.rds_instance_count > 0 ? aws_db_instance.rds.0.username : ""
 }
 
 output "rds_password" {
   sensitive = true
-  value     = "${element(concat(aws_db_instance.rds.*.password, list("")), 0)}"
+  value     = var.rds_instance_count > 0 ? aws_db_instance.rds.0.password : ""
 }
 
 output "rds_db_name" {
-  value = "${element(concat(aws_db_instance.rds.*.name, list("")), 0)}"
+  value = var.rds_instance_count > 0 ? aws_db_instance.rds.0.name: ""
 }
+
